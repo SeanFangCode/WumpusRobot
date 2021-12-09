@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Wumpus World Robot Project</title>
+  
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand" href="#page-top">Doug</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars ms-1"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link" href="#problem">Problem</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#timeline">Timeline</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#reflection">Reflection</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#progress">Progress Shots</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#portfolio">Shop</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Masthead-->
+        <header class="masthead">
+            <div class="container">
+                <div class="masthead-heading text-uppercase">Doug</div>
+                <a class="btn btn-primary btn-xl text-uppercase" href="#problem">Tell Me More</a>
+            </div>
+        </header>
+        <!-- Problem-->
+        <section class="page-section" id="problem">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Problem</h2>
+                    <h3 class="section-subheading text-muted">What is the Wumpus Problem?</h3>
+                    <p class="text-muted">The Wumpus World is made up of a 4x4 grid of squares. The world is randomized with a pit, a Wumpus, and a pile of gold which are all in their one grid space. The challenge of this is to create a robot that can navigate this field that can reach the gold whilst avoiding or killing the monster that is the Wumpus and trying not to fall into the pit. In order to achieve this, the robot receives signals after reaching a grid location of either a breeze, stench, or glimmer. The robot will identify a “breeze” as a pit nearby, a “stench” as a Wumpus nearby, and a “glimmer” as a pile of gold nearby.</p>
+                    <img src="assets/img/WumpusEx.png" alt="..." width="400" height="400">
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-4">
+                     
+                        <h4 class="my-3">Logic and Movement</h4>
+                        <p class="text-muted">
+                            
+                            <h6 class="my-3">Movement Logic</h6>
+                            Start in the bottom left corner. Direction=foward. x=1, y=1<br>
+                            <br>
+                            If space in front is super danger or has 2 danger value on it (w or normal), turn left and run again.
+                            Direction=F: If y<4, go forward. y=y+1
+                            Direction=R: if x<4, go forward. x=x+1
+                            Direction=L: if x>1, go forward. x=x-1
+                            Direction=B: if y>1, go forward. y=y-1
+                            Else, turn left and run again.
+                            Once movement is complete, mark current space as visited and seen. check if current space has been visited before. If yes, remove visit status from previous space.<br>
+                            
+                            <br>
+                            If nothing is sensed, run movement logic, and mark all adjacent squares as safe. Safe squares cannot get danger or super danger, and have all dangers on them removed.<br>
+                            <br>
+                            If gold is collected, determine previous square visited, and go to it. Repeat until coordinates are 1,1.<br>
+                            <br>
+                            <h6 class="my-3">Danger Logic</h6>
+                            If more than one type of danger is sensed, add 1 danger and 1 super danger to all adjacent squares. Squares with super danger should be avoided.<br>
+                            <br>
+                            If only one danger is sensed, add 1 danger to all adjacent squares, besides the one that the robot came from. Invert direction, run movement logic, go left.<br>
+                            <br>
+                            If the danger is a wumpus smell, add a “W” to adjacent squares, besides the one that the robot came from.<br>
+                            <br>
+                            Once a square reaches danger level 2, that square is almost guaranteed to be bad, so give it super danger.<br>
+                            <br>
+                            If two squares have two or more danger, look for safe squares that have not been landed on. If they exist, go to them. This is done by comparing safe squares to seen squares, and navigating to the safe square by aligning x axis and moving until x value matches, then aligning y axis and moving until y value matches. If movement is interrupted in an axis, try the other axis, and repeat until coordinates match ideal spot.<br>
+                            <br>
+                            If no un-visited safe squares exist, look for squares with 2 Ws, move to be next to it (similar logic to the un-visited safe square logic), orient to them, and shoot. If there are no squares with 2 Ws, do not start new logic for the 2nd danger, instead mark it as super danger. Clear out the spaces with one danger.<br>
+                            <br>
+                            <h6 class="my-3">Danger Movement</h6>
+                            Find which axis is closest to danger, orient to stay on that axis, Determine if left/right of the danger is guarded by super danger/different regular danger. If left is safe, move left, then forward, and check for danger. If there isn’t danger, turn right and go forward, then check for SUPER DANGERS ONLY, NOT REGULAR DANGERS. If super danger, turn around, go forward, go left, go forward twice, go left, go forward twice. If there is danger, turn around, move forward twice, turn right, move forward, and check for SUPER DANGERS ONLY. DO NOT CHECK FOR NORMAL DANGER. If super danger, turn around, go forward, go right, go forward twice, go right, go forward twice. If not super danger, go forward.<br>
+                            <br>
+                            If danger is sensed and there is a square nearby marked with danger of 2, determine if in path of danger. If no, ignore. If yes, look for safe squares that have not been visited before, and go to them.<br>
+                            <br>
+                            <h6 class="my-3">Victory Logic</h6>
+                            If there is glitter, and no other smells, run movement logic. If gold is not collected, invert direction (-2 mod 4?), run movement logic, turn left.
+
+                            
+
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+               
+                        <h4 class="my-3">Intelligence and Consiousness</h4>
+                        <p class="my-3">
+                            Is Doug intelligent?
+                            In relation to the wumpus problem, Doug is intelligent. This is becasue Doug uses information gathered from its environment to learn about its surroundings and solve the Wumpus problem. However, this is the only thing that Doug can do. If you were to throw Doug into a completely new environment without the board and objectives, it would be useless. This means that in terms of AI, Doug can be considered to be a reactive type of AI, but is not generally intelligent.<br>
+                            <br>
+                            
+                            In addition to Doug's limitaions on the environments it can work in, Doug lacks the emotional intelligence to understand why it solves a puzzle, and is therefore not conscious. Furthermore, a seemingly simple task such as this, which can be done by a human fairly easily, was very difficult to get a robot to do. If there is so much difficulty in getting the robot to learn something this simple, the possibility of a general AI does not seem high. Our robot is definitely not generally intelligent, and yet we had many difficulties debugging the robot’s logic. This shows that a generally intelligent AI is leaps beyond anything we as a group could come up with.
+                            </p>
+                    </div>
+              
+                    
+                </div>
+            </div>
+        </section>
+        <!-- Timeline-->
+        <section class="page-section" id="timeline">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Timeline</h2>
+                    <h3 class="section-subheading text-muted">Progress Report</h3>
+                </div>
+                <ul class="timeline">
+                    <li>
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/1.JPG" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>11/15/2021</h4>
+                                <h4 class="subheading">First Day</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">Today we organized the parts kit and began the project. Thomas and Brian built and completed the robot prototype. Sean created a template for the website and started looking at graphics to use. Aadi started the software setup and looked into how the wumpus problem worked.</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/2.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>11/18/2021</h4>
+                                <h4 class="subheading">Day Two</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">Today we figured out how to run the code on the robot and played around with the code a bit. We also brainstormed the logic behind how the robot was going to run.</p></div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/3.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>11/22/2021</h4>
+                                <h4 class="subheading">Day Three</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">Today we mainly did bug fixing for both the robot and the wumpus simulator. We had to change the height of the sensors as they were too low. Brian had most of the logic worked out at this point.</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/4.png" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>11/29/2021</h4>
+                                <h4 class="subheading">Day Four</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">Today we got the robot to do a figure 8 sucessfully.</p></div>
+
+                        </div>
+                    </li>
+                    <li>
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/about/5.jpg" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>12/2/2021</h4>
+                                <h4 class="subheading">Day Five</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">Today we tested our algorithim logic and found flaws in it and tweaked it so it woud work. We did struggle on find out how to communicate with the robot.</p></div>
+                        </div>
+                    </li>
+                    <li class="timeline-inverted">
+                        <div class="timeline-image"><img class="rounded-circle img-fluid" src="assets/img/WumpusEx.png" alt="..." /></div>
+                        <div class="timeline-panel">
+                            <div class="timeline-heading">
+                                <h4>12/6/2021</h4>
+                                <h4 class="subheading">Day Six</h4>
+                            </div>
+                            <div class="timeline-body"><p class="text-muted">Today we tried to get as much of the logic written in code as possible for the round up.</p></div>
+
+                        </div>
+                    </li>
+                   
+                </ul>
+            </div>
+        </section>
+        <!-- Roundup-->
+        <section class="page-section" id="reflection">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Roundup Reflection</h2>
+                    <h3 class="section-subheading text-muted">Problems we encountered</h3>
+                    <p class="text-muted">We were not able to successfully get the code working in time for the roundup to demonstrate is capabilities of solving the board. We ran into a time shortage for implementing the logic that we created into code format. However, based on the logic that was created, we believe we would be able to solve most of the puzzles.<br>
+                    <br>
+                    
+                    </p>
+               
+                </div>
+        <!-- Photos-->
+        <section class="page-section bg-light" id="progress">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Progress Shots</h2>
+                  
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 1-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal1">
+                            
+                                <img class="img-fluid" src="assets/img/about/1.JPG" alt="..." />
+                            </a>
+                        
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 2-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal2">
+                        
+                                <img class="img-fluid" src="assets/img/about/2.jpg" alt="..." />
+                            </a>
+                     
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 3-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal3">
+                                <img class="img-fluid" src="assets/img/about/3.jpg" alt="..." />
+                            </a>
+                     
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4 mb-lg-0">
+                        <!-- Portfolio item 4-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal4">
+                                <video width="300" height="500" controls>
+                                    <source src="assets/img/Figure8.mov" type="video/mp4">
+                                </video>
+                        </div> 
+                    </div>    
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 3-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal3">
+                                <img class="img-fluid" src="assets/img/about/4.png" alt="..." />
+                            </a>
+                     
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 3-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal3">
+                                <img class="img-fluid" src="assets/img/about/5.jpg" alt="..." />
+                            </a>
+                     
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section> 
+        <!-- Team-->
+        <section class="page-section bg-light" id="team">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Team Members</h2>
+                    
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="team-member">
+                            <img class="mx-auto rounded-circle" src="assets/img/team/person.png" alt="..." />
+                            <h4>Sean Fang</h4>
+                            <p class="text-muted">Website Maker/Coder</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="team-member">
+                            <img class="mx-auto rounded-circle" src="assets/img/team/person.png" alt="..." />
+                            <h4>Aadi Lahiri</h4>
+                            <p class="text-muted">Lead Programmer/Coder</p>
+
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="team-member">
+                            <img class="mx-auto rounded-circle" src="assets/img/team/person.png" alt="..." />
+                            <h4>Thomas McGowan</h4>
+                            <p class="text-muted">Coder</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="team-member">
+                            <img class="mx-auto rounded-circle" src="assets/img/team/person.png" alt="..." />
+                            <h4>Brian Stern</h4>
+                            <p class="text-muted">Thinker</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 mx-auto text-center"><p class="large text-muted"></p></div>
+                </div>
+            </div>
+        </section>
+        <!-- Shop-->
+        <section class="page-section bg-light" id="portfolio">
+            <div class="container">
+                <div class="text-center">
+                    <h2 class="section-heading text-uppercase">Shop</h2>
+                    <h3 class="section-subheading text-muted"></h3>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 1-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal1">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/portfolio/1.jpg" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">T-Shirt</div>
+                                <div class="portfolio-caption-subheading text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 2-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal2">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/portfolio/2.jpg" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Hoodie</div>
+                                <div class="portfolio-caption-subheading text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4">
+                        <!-- Portfolio item 3-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal3">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/portfolio/3.jpg" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Beanie</div>
+                                <div class="portfolio-caption-subheading text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6 mb-4 mb-lg-0">
+                        <!-- Portfolio item 4-->
+                        <div class="portfolio-item">
+                            <a class="portfolio-link" data-bs-toggle="modal" href="#portfolioModal4">
+                                <div class="portfolio-hover">
+                                    <div class="portfolio-hover-content"><i class="fas fa-plus fa-3x"></i></div>
+                                </div>
+                                <img class="img-fluid" src="assets/img/portfolio/4.jpg" alt="..." />
+                            </a>
+                            <div class="portfolio-caption">
+                                <div class="portfolio-caption-heading">Backpack</div>
+                                <div class="portfolio-caption-subheading text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>       
+      
+  
+   
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+
+    </body>
+</html>
